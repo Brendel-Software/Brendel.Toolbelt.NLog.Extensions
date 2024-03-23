@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brendel.Toolbelt.NLog.Extensions", "Brendel.Toolbelt.NLog.Extensions\Brendel.Toolbelt.NLog.Extensions.csproj", "{7C1570FA-62F2-42D4-9D27-A32F9441A2EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brendel.Toolbelt.NLog.Extensions", "Brendel.Toolbelt.NLog.Extensions\Brendel.Toolbelt.NLog.Extensions.csproj", "{7C1570FA-62F2-42D4-9D27-A32F9441A2EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brendel.Toolbelt.NLog.Extensions.TestConsoleApp", "Brendel.Toolbelt.NLog.Extensions.TestConsoleApp\Brendel.Toolbelt.NLog.Extensions.TestConsoleApp.csproj", "{6DA92CB0-4639-4DE6-B4EE-B4DC6DEFFDDD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brendel.Toolbelt.NLog.Extensions.TestConsoleApp", "Brendel.Toolbelt.NLog.Extensions.TestConsoleApp\Brendel.Toolbelt.NLog.Extensions.TestConsoleApp.csproj", "{6DA92CB0-4639-4DE6-B4EE-B4DC6DEFFDDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brendel.Toolbelt.NLog.Extensions.Tests", "Brendel.Toolbelt.NLog.Extensions.Tests\Brendel.Toolbelt.NLog.Extensions.Tests.csproj", "{933A4AD0-9BAE-4F6F-895D-CFD4C0F161EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brendel.Toolbelt.NLog.Extensions.Tests", "Brendel.Toolbelt.NLog.Extensions.Tests\Brendel.Toolbelt.NLog.Extensions.Tests.csproj", "{933A4AD0-9BAE-4F6F-895D-CFD4C0F161EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
