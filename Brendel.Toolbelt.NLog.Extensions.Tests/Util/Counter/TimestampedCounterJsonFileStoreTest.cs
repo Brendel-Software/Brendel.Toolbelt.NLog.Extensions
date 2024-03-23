@@ -4,19 +4,19 @@ using JetBrains.Annotations;
 
 namespace Brendel.Toolbelt.NLog.Extensions.Tests.Util.Counter;
 
-[TestSubject(typeof(CounterJsonFileStore))]
-public class CounterJsonFileStoreTest {
+[TestSubject(typeof(TimestampedCounterJsonFileStore))]
+public class TimestampedCounterJsonFileStoreTest {
 	[Fact]
 	public void LoadState_loads_state() {
 		using var testfile = new DisposableFile();
 		File.WriteAllText(testfile.FullPath, """
 											 {
-											   "StartTimestamp": "2021-09-01T12:00:00Z",
+											   "StartTimestamp": "2021-09-01T12:00:00+00:00",
 											   "Count":3
 											 }
 											 """);
 
-		var sut = new CounterJsonFileStore(testfile.FullPath);
+		var sut = new TimestampedCounterJsonFileStore(testfile.FullPath);
 		var result = sut.LoadState();
 		Assert.NotNull(result);
 		Assert.Equal(new DateTime(2021, 9, 1, 12, 0, 0, DateTimeKind.Utc), result.StartTimestamp);
@@ -26,7 +26,7 @@ public class CounterJsonFileStoreTest {
 	[Fact]
 	public void LoadState_returns_null_on_nonexisting_file() {
 		using var testfile = new DisposableFile();
-		var sut = new CounterJsonFileStore(testfile.FullPath);
+		var sut = new TimestampedCounterJsonFileStore(testfile.FullPath);
 		var result = sut.LoadState();
 		Assert.Null(result);
 	}
@@ -36,7 +36,7 @@ public class CounterJsonFileStoreTest {
 		using var testfile = new DisposableFile();
 		File.WriteAllText(testfile.FullPath, "");
 
-		var sut = new CounterJsonFileStore(testfile.FullPath);
+		var sut = new TimestampedCounterJsonFileStore(testfile.FullPath);
 		var result = sut.LoadState();
 		Assert.Null(result);
 	}
@@ -44,12 +44,12 @@ public class CounterJsonFileStoreTest {
 	[Fact]
 	public void SaveState_saves_state() {
 		using var testfile = new DisposableFile();
-		const string expected_json = "{\"StartTimestamp\":\"2024-10-17T12:32:12Z\",\"Count\":44}";
+		const string expected_json = "{\"StartTimestamp\":\"2024-10-17T12:32:12+00:00\",\"Count\":44}";
 		var state = new TimestampedCounter {
-			StartTimestamp = new DateTime(2024, 10, 17, 12, 32, 12, DateTimeKind.Utc),
+			StartTimestamp = new DateTimeOffset(2024, 10, 17, 12, 32, 12, 0, TimeSpan.Zero),
 			Count = 44
 		};
-		var sut = new CounterJsonFileStore(testfile.FullPath);
+		var sut = new TimestampedCounterJsonFileStore(testfile.FullPath);
 		sut.SaveState(state);
 
 		var json = File.ReadAllText(testfile.FullPath);
@@ -66,7 +66,7 @@ public class CounterJsonFileStoreTest {
 			Count = 44
 		};
 
-		var sut = new CounterJsonFileStore(testfile.FullPath);
+		var sut = new TimestampedCounterJsonFileStore(testfile.FullPath);
 		sut.SaveState(state);
 
 		Assert.True(Directory.Exists(subdir.FullPath));
@@ -76,7 +76,7 @@ public class CounterJsonFileStoreTest {
 	[Fact]
 	public void DeleteState_deletes_state() {
 		using var testfile = new DisposableFile();
-		var store = new CounterJsonFileStore(testfile.FullPath);
+		var store = new TimestampedCounterJsonFileStore(testfile.FullPath);
 		store.DeleteState();
 
 		Assert.False(File.Exists(testfile.FullPath));

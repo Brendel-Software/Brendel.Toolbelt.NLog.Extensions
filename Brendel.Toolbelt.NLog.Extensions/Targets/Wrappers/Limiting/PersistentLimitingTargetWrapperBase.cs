@@ -5,10 +5,10 @@ namespace Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 
 /// <summary>
 /// Wraps another target and limits the number of messages written to it per interval.
-/// The state of the wrapper is persisted to a <see cref="ICounterStore"/> interface on close and restored on startup.
+/// The state of the wrapper is persisted to a <see cref="ITimestampedCounterStore"/> interface on close and restored on startup.
 /// </summary>
 public abstract class PersistentLimitingTargetWrapperBase : StatefulLimitingTargetWrapper {
-	protected abstract ICounterStore Store { get; }
+	protected abstract ITimestampedCounterStore Store { get; }
 
 	protected override void InitializeTarget() {
 		Counter = LoadState();

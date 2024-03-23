@@ -3,7 +3,7 @@
 /// <summary>
 /// Saves and loads a <see cref="TimestampedCounter"/>.
 /// </summary>
-public interface ICounterStore {
+public interface ITimestampedCounterStore {
 	/// <summary>
 	/// Loads the state from the store
 	/// </summary>

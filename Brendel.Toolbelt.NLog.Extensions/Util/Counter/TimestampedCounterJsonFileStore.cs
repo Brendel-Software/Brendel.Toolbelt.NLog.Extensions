@@ -7,7 +7,7 @@ namespace Brendel.Toolbelt.NLog.Extensions.Util.Counter;
 /// <summary>
 /// Represents a class responsible for saving and loading a <see cref="TimestampedCounter"/> to and from a JSON file.
 /// </summary>
-public class CounterJsonFileStore : ICounterStore {
+public class TimestampedCounterJsonFileStore : ITimestampedCounterStore {
 	private readonly string _file;
 
 	/// <summary>
@@ -15,7 +15,7 @@ public class CounterJsonFileStore : ICounterStore {
 	/// </summary>
 	/// <param name="file">The file path where the <see cref="TimestampedCounter"/> will be saved to or loaded from. This parameter cannot be null or empty.</param>
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="file"/> is null or empty.</exception>
-	public CounterJsonFileStore(string file) {
+	public TimestampedCounterJsonFileStore(string file) {
 		if (string.IsNullOrWhiteSpace(file)) {
 			throw new ArgumentException("File must not be null or empty", nameof(file));
 		}
@@ -53,7 +53,7 @@ public class CounterJsonFileStore : ICounterStore {
 	}
 
 	/// <summary>
-	/// Represents a builder for creating a <see cref="CounterJsonFileStore"/> instance.
+	/// Represents a builder for creating a <see cref="TimestampedCounterJsonFileStore"/> instance.
 	/// </summary>
 	public class Builder {
 		/// <summary>
@@ -73,7 +73,7 @@ public class CounterJsonFileStore : ICounterStore {
 		/// It then sets the <see cref="File"/> property to a full path combining the temporary directory with the generated file name.
 		/// </remarks>
 		public void UseTargetName(Target target) {
-			const string prefix = $"NLog-{nameof(CounterJsonFileStore)}";
+			const string prefix = $"NLog-{nameof(TimestampedCounterJsonFileStore)}";
 			var assemblyName = RemoveUnsafeCharacters(Assembly.GetExecutingAssembly().GetName().Name);
 			var name = RemoveUnsafeCharacters(target.Name);
 			const string ext = ".state.json";
@@ -83,16 +83,16 @@ public class CounterJsonFileStore : ICounterStore {
 		}
 
 		/// <summary>
-		/// Builds and returns a <see cref="CounterJsonFileStore"/> instance using the configured file path.
+		/// Builds and returns a <see cref="TimestampedCounterJsonFileStore"/> instance using the configured file path.
 		/// </summary>
-		/// <returns>A <see cref="CounterJsonFileStore"/> instance.</returns>
+		/// <returns>A <see cref="TimestampedCounterJsonFileStore"/> instance.</returns>
 		/// <exception cref="InvalidOperationException">Thrown if the <see cref="File"/> property is not set before calling this method.</exception>
-		public CounterJsonFileStore Build() {
+		public TimestampedCounterJsonFileStore Build() {
 			if (File is not { } file || string.IsNullOrWhiteSpace(file)) {
 				throw new InvalidOperationException("File must be set");
 			}
 
-			return new CounterJsonFileStore(file);
+			return new TimestampedCounterJsonFileStore(file);
 		}
 
 		private static string RemoveUnsafeCharacters(string? input) =>

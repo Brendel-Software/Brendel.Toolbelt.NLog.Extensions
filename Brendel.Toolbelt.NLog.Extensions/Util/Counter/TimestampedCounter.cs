@@ -7,7 +7,7 @@ public class TimestampedCounter {
 	/// <summary>
 	/// Timestamp of the first count within the interval.
 	/// </summary>
-	public DateTime StartTimestamp { get; set; }
+	public DateTimeOffset StartTimestamp { get; set; }
 
 	/// <summary>
 	/// Counts within the time interval.
@@ -20,7 +20,7 @@ public class TimestampedCounter {
 	/// <param name="interval">the interval to add to the <see cref="StartTimestamp"/></param>
 	/// <param name="timestamp">the timestamp to check against</param>
 	/// <returns><c>true</c> if the interval has expired, otherwise <c>false</c></returns>
-	public bool CheckExpired(TimeSpan interval, DateTime timestamp) {
+	public bool CheckExpired(TimeSpan interval, DateTimeOffset timestamp) {
 		return StartTimestamp + interval < timestamp;
 	}
 
@@ -28,15 +28,15 @@ public class TimestampedCounter {
 	/// Resets the <see cref="StartTimestamp"/> and <see cref="Count"/>.
 	/// </summary>
 	public void Reset() {
-		StartTimestamp = DateTime.MinValue;
+		StartTimestamp = DateTimeOffset.MinValue;
 		Count = 0;
 	}
 
 	/// <summary>
 	/// Increments the <see cref="Count"/> and sets the <see cref="StartTimestamp"/> if not already set.
 	/// </summary>
-	public void Increment(DateTime timestamp) {
-		if (StartTimestamp == DateTime.MinValue) {
+	public void Increment(DateTimeOffset timestamp) {
+		if (StartTimestamp == DateTimeOffset.MinValue) {
 			StartTimestamp = timestamp;
 		}
 		Count += 1;

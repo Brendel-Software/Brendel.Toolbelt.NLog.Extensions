@@ -12,10 +12,10 @@ namespace Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 /// </summary>
 [Target("PersistentLimitingWrapper", IsWrapper = true)]
 public class PersistentLimitingWrapper : PersistentLimitingTargetWrapperBase {
-	private ICounterStore? _store;
+	private ITimestampedCounterStore? _store;
 	private string? _stateCacheFile;
 
-	protected override ICounterStore Store => _store ??= CreateStore();
+	protected override ITimestampedCounterStore Store => _store ??= CreateStore();
 
 	/// <summary>
 	/// File for storing the <see cref="TimestampedCounter"/>.<br/>
@@ -33,8 +33,8 @@ public class PersistentLimitingWrapper : PersistentLimitingTargetWrapperBase {
 		base.InitializeTarget();
 	}
 
-	private CounterJsonFileStore CreateStore() {
-		var builder = new CounterJsonFileStore.Builder();
+	private TimestampedCounterJsonFileStore CreateStore() {
+		var builder = new TimestampedCounterJsonFileStore.Builder();
 
 		if (string.IsNullOrWhiteSpace(_stateCacheFile)) {
 			builder.UseTargetName(this);

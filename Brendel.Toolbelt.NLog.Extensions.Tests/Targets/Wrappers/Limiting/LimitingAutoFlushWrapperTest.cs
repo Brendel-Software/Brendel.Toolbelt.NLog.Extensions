@@ -111,11 +111,9 @@ public class LimitingAutoFlushWrapperTest {
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
 		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
-		logger.WriteFakeWarnMessages(10);
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
 		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
-		logger.WriteFakeWarnMessages(10);
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
 		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));

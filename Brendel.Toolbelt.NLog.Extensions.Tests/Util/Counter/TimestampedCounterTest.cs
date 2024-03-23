@@ -33,13 +33,13 @@ public class TimestampedCounterTest {
 	[Fact]
 	public void Reset_resets_state() {
 		var state = new TimestampedCounter {
-			StartTimestamp = DateTime.UtcNow,
+			StartTimestamp = DateTimeOffset.Now,
 			Count = 3
 		};
 
 		state.Reset();
 
-		Assert.Equal(DateTime.MinValue, state.StartTimestamp);
+		Assert.Equal(DateTimeOffset.MinValue, state.StartTimestamp);
 		Assert.Equal(0, state.Count);
 	}
 

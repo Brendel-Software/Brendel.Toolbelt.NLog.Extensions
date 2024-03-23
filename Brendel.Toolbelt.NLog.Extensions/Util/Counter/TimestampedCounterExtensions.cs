@@ -8,11 +8,11 @@ public static class TimestampedCounterExtensions {
 	/// <param name="interval">the interval to check against</param>
 	/// <param name="timestamp">the timestamp to check against</param>
 	public static void IncrementIntervalAware(this TimestampedCounter counter, TimeSpan interval, DateTimeOffset timestamp) {
-		if (counter.CheckExpired(interval, timestamp.UtcDateTime)) {
+		if (counter.CheckExpired(interval, timestamp)) {
 			counter.Reset();
 		}
 
-		counter.Increment(timestamp.UtcDateTime);
+		counter.Increment(timestamp);
 	}
 
 	/// <summary>
@@ -23,7 +23,7 @@ public static class TimestampedCounterExtensions {
 	/// <param name="timestamp">the timestamp to check against</param>
 	/// <param name="limit">the limit to check against</param>
 	public static bool CanIncrement(this TimestampedCounter counter, TimeSpan inverval, DateTimeOffset timestamp, int limit) {
-		if (counter.CheckExpired(inverval, timestamp.UtcDateTime)) {
+		if (counter.CheckExpired(inverval, timestamp)) {
 			return true;
 		}
 
