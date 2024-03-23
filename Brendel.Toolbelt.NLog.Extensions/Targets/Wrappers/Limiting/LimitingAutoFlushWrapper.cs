@@ -95,8 +95,7 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 	private void StartDebounceWindow() {
 		var lockTaken = false;
 		try {
-			var delay = Counter.StartTimestamp + Interval - TimeProvider.GetUtcNow();
-			lockTaken = Monitor.TryEnter(_debounceLock, delay);
+			lockTaken = Monitor.TryEnter(_debounceLock, TimeSpan.FromMilliseconds(100));
 			if (lockTaken) {
 				if (_debounceCts?.IsCancellationRequested == false) {
 					return;
@@ -104,6 +103,7 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 
 				_debounceCts = new();
 				var token = _debounceCts.Token;
+				var delay = Counter.StartTimestamp + Interval - TimeProvider.GetUtcNow();
 				Task.Run(async () => {
 					await Task.Delay(delay, TimeProvider, token);
 
