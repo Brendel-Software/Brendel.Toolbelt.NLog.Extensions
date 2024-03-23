@@ -1,17 +1,16 @@
 ﻿using System.Diagnostics;
 using NLog;
 
+var logger = LogManager.Setup().GetCurrentClassLogger();
 try {
-	var logger = LogManager.Setup().GetCurrentClassLogger();
-	var config = LogManager.Configuration;
-	logger.Trace("Trace!");
-	logger.Debug("Debug!");
-	logger.Info("Info!");
-	logger.Warn("Warnung!");
 	logger.Trace("Trace!");
 	logger.Debug("Debug!");
 	logger.Info("Info!");
 	logger.Trace("Trace!");
+	logger.Debug("Debug!");
+	logger.Info("Info!");
+	logger.Trace("Trace!");
+	throw new InvalidOperationException("Ich bin ein Test");
 	logger.Debug("Debug!");
 	logger.Info("Info!");
 	logger.Trace("Trace!");
@@ -19,5 +18,5 @@ try {
 	logger.Info("Info!");
 	logger.Warn("Warnung!");
 } catch (Exception ex) {
-	Debugger.Break();
+	logger.Error(ex, "Fehler!");
 }

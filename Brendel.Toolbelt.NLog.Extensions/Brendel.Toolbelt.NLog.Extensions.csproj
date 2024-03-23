@@ -13,6 +13,7 @@
     <Copyright>© Brendel Software GmbH &amp; Co. KG</Copyright>
     <RepositoryUrl>https://github.com/Brendel-Software/Brendel.Toolbelt.NLog.Extensions</RepositoryUrl>
     <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +22,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NLog" Version="5.2.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
