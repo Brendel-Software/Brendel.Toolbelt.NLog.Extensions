@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Brendel.Toolbelt.NLog.Extensions.Util.Counter;
 using NLog;
 using NLog.Layouts;
 using NLog.Targets;
@@ -11,13 +12,13 @@ namespace Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 /// </summary>
 [Target("PersistentLimitingWrapper", IsWrapper = true)]
 public class PersistentLimitingWrapper : PersistentLimitingTargetWrapperBase {
-	private ILimitingWrapperStateStore? _store;
+	private ICounterStore? _store;
 	private string? _stateCacheFile;
 
-	protected override ILimitingWrapperStateStore Store => _store ??= CreateStore();
+	protected override ICounterStore Store => _store ??= CreateStore();
 
 	/// <summary>
-	/// File for storing the <see cref="LimitingWrapperState"/>.<br/>
+	/// File for storing the <see cref="TimestampedCounter"/>.<br/>
 	/// <br/>
 	/// When empty the PersistentLimitingTargetWrapper tries to create a <i>state file</i> prefixed with the <see cref="Assembly.GetExecutingAssembly"/>
 	/// and the <see cref="Target.Name"/> within Directory acquired by <i><see cref="Path.GetTempPath"/></i>.
@@ -32,8 +33,8 @@ public class PersistentLimitingWrapper : PersistentLimitingTargetWrapperBase {
 		base.InitializeTarget();
 	}
 
-	private LimitingWrapperStateJsonFileStore CreateStore() {
-		var builder = new LimitingWrapperStateJsonFileStore.Builder();
+	private CounterJsonFileStore CreateStore() {
+		var builder = new CounterJsonFileStore.Builder();
 
 		if (string.IsNullOrWhiteSpace(_stateCacheFile)) {
 			builder.UseTargetName(this);

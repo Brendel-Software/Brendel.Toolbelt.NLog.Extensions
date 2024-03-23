@@ -12,7 +12,7 @@
     <Title>Brendel Toolbelt Erweiterungen für NLog</Title>
     <Copyright>© Brendel Software GmbH &amp; Co. KG</Copyright>
     <RepositoryUrl>https://github.com/Brendel-Software/Brendel.Toolbelt.NLog.Extensions</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

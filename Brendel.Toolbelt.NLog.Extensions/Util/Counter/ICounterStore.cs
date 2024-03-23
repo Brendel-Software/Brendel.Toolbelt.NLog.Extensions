@@ -1,19 +1,19 @@
-﻿namespace Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
+﻿namespace Brendel.Toolbelt.NLog.Extensions.Util.Counter;
 
 /// <summary>
-/// Saves and loads a <see cref="LimitingWrapperState"/>.
+/// Saves and loads a <see cref="TimestampedCounter"/>.
 /// </summary>
-public interface ILimitingWrapperStateStore {
+public interface ICounterStore {
 	/// <summary>
 	/// Loads the state from the store
 	/// </summary>
 	/// <returns><c>null</c> when no state was stored</returns>
-	public LimitingWrapperState? LoadState();
+	public TimestampedCounter? LoadState();
 
 	/// <summary>
 	/// Saves the state to the store
 	/// </summary>
-	public void SaveState(LimitingWrapperState state);
+	public void SaveState(TimestampedCounter state);
 
 	/// <summary>
 	/// Deletes the state from the store

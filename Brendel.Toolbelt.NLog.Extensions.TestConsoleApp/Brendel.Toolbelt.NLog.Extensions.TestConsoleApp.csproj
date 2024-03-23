@@ -11,4 +11,10 @@
     <ProjectReference Include="..\Brendel.Toolbelt.NLog.Extensions\Brendel.Toolbelt.NLog.Extensions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="nlog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

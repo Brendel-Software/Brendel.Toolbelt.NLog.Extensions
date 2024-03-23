@@ -1,7 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
+﻿using Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 using Brendel.Toolbelt.NLog.Extensions.Tests.TestUtilities;
+using Brendel.Toolbelt.NLog.Extensions.Tests.TestUtilities.Targets;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Time.Testing;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -31,12 +32,7 @@ public class StatefulLimitingTargetWrapperTest {
 						</rules>
 					</nlog>
 					""";
-		var logFactory = new LogFactory().Setup().LoadConfigurationFromXml(xml).LogFactory;
-		var wrapper = (StatefulLimitingTargetWrapper) logFactory.Configuration.FindTargetByName("wrapper");
-		var target = (CountingSpyTarget) wrapper.WrappedTarget;
-		var logger = logFactory.GetCurrentClassLogger();
-
-		return (logger, wrapper, target);
+		return TestComponentsFactory.BuildWrapperTestComponentsFromXml<StatefulLimitingTargetWrapper, CountingSpyTarget>(xml);
 	}
 
 	[Fact]
@@ -48,35 +44,33 @@ public class StatefulLimitingTargetWrapperTest {
 	}
 
 	[Fact]
-	[SuppressMessage("ReSharper", "AccessToModifiedClosure")]
 	public void Write_stops_discarding_messages_after_interval_passed() {
 		var (logger, sut, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5));
-		var offsetMinutes = 0;
-		sut.TimeProvider = () => DateTime.UtcNow.AddMinutes(offsetMinutes);
+		var fakeTimeProvider = new FakeTimeProvider();
+		sut.TimeProvider = fakeTimeProvider;
 
 		logger.WriteFakeDebugMessages(7);
 		Assert.Equal(5, wrappedTarget.WrittenMessagesCounter);
 
-		offsetMinutes += 5; // Move time forward by 5 minutes
+		fakeTimeProvider.Advance(TimeSpan.FromMinutes(6));
 		logger.WriteFakeDebugMessages(1);
 		Assert.Equal(6, wrappedTarget.WrittenMessagesCounter);
 	}
 
 	[Fact]
-	[SuppressMessage("ReSharper", "AccessToModifiedClosure")]
 	public void Write_retains_correct_limits_between_intervals() {
 		var (logger, sut, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5));
-		var offsetMinutes = 0;
-		sut.TimeProvider = () => DateTime.UtcNow.AddMinutes(offsetMinutes);
+		var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.Now);
+		sut.TimeProvider = fakeTimeProvider;
 
 		logger.WriteFakeDebugMessages(7);
 		Assert.Equal(5, wrappedTarget.WrittenMessagesCounter);
 
-		offsetMinutes += 5; // Move time forward by 5 minutes
+		fakeTimeProvider.Advance(TimeSpan.FromMinutes(6));
 		logger.WriteFakeDebugMessages(4);
 		Assert.Equal(9, wrappedTarget.WrittenMessagesCounter);
 
-		offsetMinutes += 5; // Move time forward by another 5 minutes
+		fakeTimeProvider.Advance(TimeSpan.FromMinutes(6));
 		logger.WriteFakeDebugMessages(3);
 		Assert.Equal(12, wrappedTarget.WrittenMessagesCounter);
 

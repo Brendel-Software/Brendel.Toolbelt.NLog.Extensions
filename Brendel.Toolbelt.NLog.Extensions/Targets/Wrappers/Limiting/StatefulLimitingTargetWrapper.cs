@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using Brendel.Toolbelt.NLog.Extensions.Util.Counter;
+using NLog;
 using NLog.Common;
 using NLog.Layouts;
 using NLog.Targets;
@@ -11,7 +12,7 @@ namespace Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 /// </summary>
 [Target("StatefulLimitingWrapper", IsWrapper = true)]
 public class StatefulLimitingTargetWrapper : WrapperTargetBase {
-	protected LimitingWrapperState State { get; set; } = new();
+	protected TimestampedCounter Counter { get; set; } = new();
 
 	/// <summary>
 	/// Gets or sets the maximum allowed number of <see cref="LogEventInfo"/>s written to the <see cref="WrapperTargetBase.WrappedTarget"/> per <see cref="Interval" />.
@@ -32,7 +33,7 @@ public class StatefulLimitingTargetWrapper : WrapperTargetBase {
 	/// <summary>
 	/// A delegate that provides the current UTC date and time.
 	/// </summary>
-	public CurrentUtcTimeProvider TimeProvider { get; set; } = () => DateTime.UtcNow;
+	public TimeProvider TimeProvider { get; set; } = TimeProvider.System;
 
 	protected override void InitializeTarget() {
 		if (MessageLimit.IsFixed && MessageLimit.FixedValue <= 0) {
@@ -50,19 +51,14 @@ public class StatefulLimitingTargetWrapper : WrapperTargetBase {
 
 	protected override void Write(AsyncLogEventInfo logEvent) {
 		var interval = RenderLogEvent(Interval, logEvent.LogEvent);
-
-		if (State.CheckExpired(interval, TimeProvider.Invoke())) {
-			State.Reset();
-		}
-
 		var limit = RenderLogEvent(MessageLimit, logEvent.LogEvent);
-		if (State.WriteCount < limit) {
-			WrappedTarget.WriteAsyncLogEvent(logEvent);
-			State.UpdateCounter(TimeProvider.Invoke());
-			return;
-		}
 
-		logEvent.Continuation(null);
-		InternalLogger.Trace($"{{0}}: {nameof(MessageLimit)}={{1}} within {nameof(Interval)}={{2}} reached discarded logEvent", this, MessageLimit, Interval);
+		if (Counter.CanIncrement(interval, TimeProvider.GetUtcNow(), limit)) {
+			WrappedTarget.WriteAsyncLogEvent(logEvent);
+			Counter.IncrementIntervalAware(interval, TimeProvider.GetUtcNow());
+		} else {
+			logEvent.Continuation(null);
+			InternalLogger.Trace($"{{0}}: {nameof(MessageLimit)}={{1}} within {nameof(Interval)}={{2}} reached discarded logEvent", this, MessageLimit, Interval);
+		}
 	}
 }
