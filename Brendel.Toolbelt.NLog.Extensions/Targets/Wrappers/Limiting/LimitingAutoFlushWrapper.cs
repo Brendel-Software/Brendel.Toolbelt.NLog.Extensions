@@ -88,6 +88,14 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 		}
 	}
 
+	protected override void CloseTarget() {
+		if (_debounceCts?.IsCancellationRequested == false) {
+			_debounceCts.Cancel();
+			FlushWrappedTarget();
+		}
+		base.CloseTarget();
+	}
+
 	private readonly object _debounceLock = new();
 
 	private CancellationTokenSource? _debounceCts;
@@ -111,11 +119,7 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 						return;
 					}
 
-					WrappedTarget.Flush(ex => {
-						if (ex != null) {
-							InternalLogger.Error(ex, "Failed to flush");
-						}
-					});
+					FlushWrappedTarget();
 				}, token);
 			} else {
 				InternalLogger.Warn("Failed to acquire debounce lock");
@@ -128,6 +132,11 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 				Monitor.Exit(_debounceLock);
 			}
 		}
+	}
+
+	private void FlushWrappedTarget(AsyncContinuation? continuation = null) {
+		continuation ??= ex => InternalLogger.Error(ex, "Failed to flush");
+		WrappedTarget.Flush(continuation);
 	}
 }
 

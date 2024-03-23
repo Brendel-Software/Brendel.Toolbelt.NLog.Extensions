@@ -89,7 +89,7 @@ public class LimitingAutoFlushWrapperTest {
 	public void FlushAsync_resets_counter_when_ResetAfterNonConditionalFlushIsSet() {
 		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", true);
 		logger.Factory.Shutdown();
-		Assert.Equal(1, wrappedTarget.FlushOperationsCounter);
+		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
 	}
 
 	[Fact]
@@ -117,6 +117,25 @@ public class LimitingAutoFlushWrapperTest {
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
 		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
+		Assert.Equal(6, wrappedTarget.FlushOperationsCounter);
+	}
+
+	[Fact]
+	public void CloseTarget_triggers_flush_when_debounce_active() {
+		var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.Now);
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", false, true);
+		wrapper.TimeProvider = fakeTimeProvider;
+
+		logger.WriteFakeWarnMessages(10);
+		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
+
+		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
+		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
+
+		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
+		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
+
+		logger.Factory.Shutdown();
 		Assert.Equal(6, wrappedTarget.FlushOperationsCounter);
 	}
 }
