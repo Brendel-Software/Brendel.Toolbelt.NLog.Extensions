@@ -8,6 +8,16 @@ try {
 	logger.Debug("Debug!");
 	logger.Info("Info!");
 	logger.Warn("Warnung!");
+	logger.Trace("Trace!");
+	logger.Debug("Debug!");
+	logger.Info("Info!");
+	logger.Trace("Trace!");
+	logger.Debug("Debug!");
+	logger.Info("Info!");
+	logger.Trace("Trace!");
+	logger.Debug("Debug!");
+	logger.Info("Info!");
+	logger.Warn("Warnung!");
 } catch (Exception ex) {
 	Debugger.Break();
 }
