@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Brendel.Toolbelt.NLog.Extensions\Brendel.Toolbelt.NLog.Extensions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Util\Concurrency\" />
+  </ItemGroup>
+
 </Project>

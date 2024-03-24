@@ -13,8 +13,8 @@ public class LimitingAutoFlushWrapperTest {
 		int limit,
 		TimeSpan interval,
 		string condition,
-		bool resetAfterNonConditionalFlush = true,
-		bool debounceLostFlushes = false
+		bool flushOnConditionOnly = true,
+		bool debounceDiscardedFlushes = false
 	) {
 		var xml = $$"""
 					<?xml version="1.0" encoding="utf-8"?>
@@ -34,8 +34,8 @@ public class LimitingAutoFlushWrapperTest {
 									condition="{{condition}}"
 									flushLimit="{{limit}}"
 									interval="{{interval:c}}"
-									resetAfterNonConditionalFlush="{{resetAfterNonConditionalFlush}}"
-									debounceLostFlushes="{{debounceLostFlushes}}">
+									flushOnConditionOnly="{{flushOnConditionOnly}}"
+									debounceDiscardedFlushes="{{debounceDiscardedFlushes}}">
 								<target xsi:type="CountingSpy"
 								        name="counter" />
 							</target>
@@ -86,23 +86,53 @@ public class LimitingAutoFlushWrapperTest {
 	}
 
 	[Fact]
-	public void FlushAsync_resets_counter_when_ResetAfterNonConditionalFlushIsSet() {
-		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", true);
-		logger.Factory.Shutdown();
+	public void Flush_or_Shutdown_triggers_flush_when_FlushOnConditionOnly_is_false() {
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(3, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", false, false);
+		logger.Factory.Flush();
 		Assert.Equal(1, wrappedTarget.FlushOperationsCounter);
-	}
-
-	[Fact]
-	public void FlushAsync_does_not_trigger_flush_when_ResetAfterNonConditionalFlush_is_false() {
-		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", false);
-		logger.WriteFakeWarnMessages(10);
-		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 		logger.Factory.Shutdown();
-		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
+		Assert.Equal(2, wrappedTarget.FlushOperationsCounter);
 	}
 
 	[Fact]
-	public void FlushAsync_does_trigger_flush_after_interval_end_when_DebounceLostFlushes_is_true() {
+	public void Flush_or_Shutdown_does_not_trigger_flush_when_FlushOnConditionOnly_is_false_and_limit_reached() {
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(3, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", false, false);
+		logger.Factory.Flush();
+		logger.Factory.Flush();
+		logger.Factory.Flush();
+		Assert.Equal(3, wrappedTarget.FlushOperationsCounter);
+		logger.Factory.Flush();
+		Assert.Equal(3, wrappedTarget.FlushOperationsCounter);
+		logger.Factory.Shutdown();
+		Assert.Equal(3, wrappedTarget.FlushOperationsCounter);
+	}
+
+	[Fact]
+	public void Flush_or_Shutdown_does_not_trigger_flush_when_FlushOnConditionOnly_is_true() {
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(3, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", true, false);
+		logger.Factory.Flush();
+		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
+		logger.Factory.Shutdown();
+		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
+	}
+
+	[Fact]
+	public void Flush_or_Shutdown_force_debounce_completion() {
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(1, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", true, true);
+
+		logger.WriteFakeWarnMessages(10);
+		Assert.Equal(1, wrappedTarget.FlushOperationsCounter);
+		logger.Factory.Flush();
+		Assert.Equal(2, wrappedTarget.FlushOperationsCounter);
+
+		logger.WriteFakeWarnMessages(10);
+		Assert.Equal(2, wrappedTarget.FlushOperationsCounter);
+		logger.Factory.Shutdown();
+		Assert.Equal(3, wrappedTarget.FlushOperationsCounter);
+	}
+
+	[Fact]
+	public async Task Write_triggers_delayed_flush_when_DebounceDiscardedFlushes_is_set() {
 		var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.Now);
 		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", false, true);
 		wrapper.TimeProvider = fakeTimeProvider;
@@ -110,13 +140,24 @@ public class LimitingAutoFlushWrapperTest {
 		logger.WriteFakeWarnMessages(10);
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
-		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
+		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(2));
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
-		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
+		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(2));
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
-		fakeTimeProvider.Advance(TimeSpan.FromMinutes(2));
+		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(2));
 		Assert.Equal(6, wrappedTarget.FlushOperationsCounter);
+	}
+}
+
+public static class FakeTimeProviderExtensions {
+	/// <summary>
+	/// Waits one tick to ensure that other Tasks have started
+	/// </summary>
+	public static async Task YieldOneTickAndAdvance(this FakeTimeProvider timeProvider, TimeSpan delta) {
+		await Task.Delay(1);
+		timeProvider.Advance(TimeSpan.FromTicks(1));
+		timeProvider.Advance(delta);
 	}
 }

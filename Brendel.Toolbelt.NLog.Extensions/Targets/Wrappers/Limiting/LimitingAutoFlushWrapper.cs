@@ -1,4 +1,5 @@
-﻿using Brendel.Toolbelt.NLog.Extensions.Util.Counter;
+﻿using Brendel.Toolbelt.NLog.Extensions.Util.Concurrency;
+using Brendel.Toolbelt.NLog.Extensions.Util.Counter;
 using NLog.Common;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
@@ -10,6 +11,10 @@ namespace Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 /// </summary>
 [Target("LimitingAutoFlushWrapper")]
 public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
+	private DebounceHelper? _debounceHelperHolder;
+
+	private DebounceHelper DebounceHelper => _debounceHelperHolder ??= new(TimeProvider) {Action =	OnDebounceFinished };
+
 	/// <summary>
 	/// A Counter that keeps track of the number of flush operations within the <see cref="Interval" />.
 	/// </summary>
@@ -31,103 +36,65 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 	public int FlushLimit { get; set; } = 1;
 
 	/// <summary>
-	/// A flush operation will be called when flush operations where lost due to the <see cref="FlushLimit" /> being reached,
-	/// after the <see cref="Interval" /> has passed.
+	/// A flush operation will be called at the end of the interval when flush operations were discarded due to the <see cref="FlushLimit" /> being reached.
 	/// </summary>
-	public bool DebounceLostFlushes { get; set; }
-
-	/// <summary>
-	/// Controls whether the internal counter is reset implicitly after an explicit-flush, config-reload-flush and shutdown-flush.
-	/// </summary>
-	public bool ResetAfterNonConditionalFlush { get; set; } = true;
-
-	protected virtual bool CanFlush(AsyncLogEventInfo? logEvent) {
-		if (!Counter.CanIncrement(Interval, TimeProvider.GetUtcNow(), FlushLimit)) {
-			return false;
-		}
-
-		if (!logEvent.HasValue) {
-			return true;
-		}
-
-		if (Condition.Evaluate(logEvent.Value.LogEvent) is bool boolean) {
-			return boolean;
-		}
-
-		return true;
-	}
+	public bool DebounceDiscardedFlushes { get; set; }
 
 	protected override void Write(AsyncLogEventInfo logEvent) {
 		if (CanFlush(logEvent)) {
-			_debounceCts?.Cancel();
+			DebounceHelper.Cancel();
 			Counter.IncrementIntervalAware(Interval, TimeProvider.GetUtcNow());
 			base.Write(logEvent);
 		} else {
-			WrappedTarget.WriteAsyncLogEvent(logEvent);
-
-			if (DebounceLostFlushes) {
-				StartDebounceWindow();
+			if (DebounceDiscardedFlushes) {
+				DebounceHelper.DebounceAt(Counter.StartTimestamp + Interval);
 			}
+
+			WrappedTarget.WriteAsyncLogEvent(logEvent);
 		}
 	}
 
 	protected override void FlushAsync(AsyncContinuation asyncContinuation) {
-		if (ResetAfterNonConditionalFlush) {
-			Counter.Reset();
-		}
-
-		if (CanFlush(null)) {
-			_debounceCts?.Cancel();
+		if (DebounceHelper.Active) {
+			DebounceHelper.Cancel();
+			FlushWrappedTarget(asyncContinuation);
+		} else if(FlushOnConditionOnly || LimitReached()) {
+			asyncContinuation(null);
+		} else {
 			Counter.IncrementIntervalAware(Interval, TimeProvider.GetUtcNow());
 			base.FlushAsync(asyncContinuation);
-		} else {
-			asyncContinuation(null);
-			if (DebounceLostFlushes) {
-				StartDebounceWindow();
-			}
 		}
 	}
 
-	private readonly object _debounceLock = new();
+	protected override void CloseTarget() {
+		_debounceHelperHolder?.Dispose();
+		_debounceHelperHolder = null;
+		base.CloseTarget();
+	}
 
-	private CancellationTokenSource? _debounceCts;
+	private bool LimitReached() {
+		return !Counter.CanIncrement(Interval, TimeProvider.GetUtcNow(), FlushLimit);
+	}
 
-	private void StartDebounceWindow() {
-		var lockTaken = false;
-		try {
-			lockTaken = Monitor.TryEnter(_debounceLock, TimeSpan.FromMilliseconds(100));
-			if (lockTaken) {
-				if (_debounceCts?.IsCancellationRequested == false) {
-					return;
-				}
-
-				_debounceCts = new();
-				var token = _debounceCts.Token;
-				var delay = Counter.StartTimestamp + Interval - TimeProvider.GetUtcNow();
-				Task.Run(async () => {
-					await Task.Delay(delay, TimeProvider, token);
-
-					if (token.IsCancellationRequested) {
-						return;
-					}
-
-					WrappedTarget.Flush(ex => {
-						if (ex != null) {
-							InternalLogger.Error(ex, "Failed to flush");
-						}
-					});
-				}, token);
-			} else {
-				InternalLogger.Warn("Failed to acquire debounce lock");
-			}
-		} catch (Exception ex) {
-			InternalLogger.Error(ex, "Failed to acquire debounce lock");
+	private bool CanFlush(AsyncLogEventInfo logEvent) {
+		if (LimitReached()) {
+			return false;
 		}
-		finally {
-			if (lockTaken) {
-				Monitor.Exit(_debounceLock);
-			}
+
+		if (Condition.Evaluate(logEvent.LogEvent) is bool boolean) {
+			return boolean;
 		}
+
+		return false;
+	}
+
+	private void OnDebounceFinished(DateTimeOffset debouncedAt) {
+		if (Counter.StartTimestamp + Interval == debouncedAt) {
+			FlushWrappedTarget(null);
+		}
+	}
+
+	private void FlushWrappedTarget(AsyncContinuation? continuation) {
+		WrappedTarget.Flush(continuation ?? (_ => { }));
 	}
 }
-
