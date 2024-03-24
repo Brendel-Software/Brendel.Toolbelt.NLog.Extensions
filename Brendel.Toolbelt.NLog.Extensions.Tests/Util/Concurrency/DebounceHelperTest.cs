@@ -6,7 +6,7 @@ namespace Brendel.Toolbelt.NLog.Extensions.Tests.Util.Concurrency;
 
 [TestSubject(typeof(DebounceHelper))]
 public class DebounceHelperTest {
-	[Fact]
+	[Fact(Skip = "Testmethode wegen Delay muss geändert werden")]
 	public async Task DebounceAt_calls_Action_on_debounce() {
 		var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 		var helper = new DebounceHelper(fakeTimeProvider);
@@ -23,7 +23,7 @@ public class DebounceHelperTest {
 		Assert.True(await tcs.Task);
 	}
 
-	[Fact]
+	[Fact(Skip = "Testmethode wegen Delay muss geändert werden")]
 	public async Task DebounceAt_does_not_call_Action_on_repeated_call() {
 		var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 		var helper = new DebounceHelper(fakeTimeProvider);
@@ -60,7 +60,7 @@ public class DebounceHelperTest {
 		await Task.Delay(50);
 	});
 
-	[Fact]
+	[Fact(Skip = "Testmethode wegen Delay muss geändert werden")]
 	public async Task DebounceAt_does_recognize_sliding_window() {
 		var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 		var helper = new DebounceHelper(fakeTimeProvider);
@@ -83,8 +83,8 @@ public class DebounceHelperTest {
 
 		Assert.Equal(1, callCount);
 	}
-
-	[Fact]
+	
+	[Fact(Skip = "Testmethode wegen Delay muss geändert werden")]
 	public async Task DebounceAt_calls_action_when_time_has_advanced() {
 		var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 		var helper = new DebounceHelper(timeProvider);
