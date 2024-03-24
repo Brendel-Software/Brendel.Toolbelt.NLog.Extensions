@@ -1,5 +1,4 @@
-﻿using Brendel.Toolbelt.NLog.Extensions.Tests.TestUtilities;
-using Brendel.Toolbelt.NLog.Extensions.Util.Concurrency;
+﻿using Brendel.Toolbelt.NLog.Extensions.Util.Concurrency;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Time.Testing;
 
@@ -48,13 +47,9 @@ public class DebounceHelperTest {
 			fakeTimeProvider.Advance(TimeSpan.FromMinutes(1));
 			await Task.Delay(50);
 		});
-
+		fakeTimeProvider.Advance(TimeSpan.FromMinutes(1));
 		helper.DebounceAt(debounceAt);
-		await Task.Run(async () => {
-			await Task.Delay(50);
-			fakeTimeProvider.Advance(TimeSpan.FromMinutes(1));
-			await Task.Delay(50);
-		});
+		Thread.Sleep(100);
 
 		Assert.Equal(1, callCount);
 	}

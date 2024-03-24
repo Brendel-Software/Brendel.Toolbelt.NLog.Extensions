@@ -172,6 +172,7 @@ public class LimitingAutoFlushWrapperTest {
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
 		await AdvanceMinutesAsync(fakeTimeProvider, 2);
+		Thread.Sleep(100);
 		Assert.Equal(6, wrappedTarget.FlushOperationsCounter);
 	}
 
