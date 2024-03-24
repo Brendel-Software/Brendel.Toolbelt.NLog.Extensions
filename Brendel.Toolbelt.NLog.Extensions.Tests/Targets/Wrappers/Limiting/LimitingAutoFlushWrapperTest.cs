@@ -1,5 +1,4 @@
-﻿using System.Xml.Serialization;
-using Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
+﻿using Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 using Brendel.Toolbelt.NLog.Extensions.Tests.TestUtilities;
 using Brendel.Toolbelt.NLog.Extensions.Tests.TestUtilities.Targets;
 using JetBrains.Annotations;
@@ -64,7 +63,7 @@ public class LimitingAutoFlushWrapperTest {
 		wrapper.TimeProvider = fakeTimeProvider;
 		logger.WriteFakeDebugMessages(10);
 		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
-		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(5));
+		await AdvanceMinutesAsync(fakeTimeProvider, 5);
 		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
 	}
 
@@ -165,25 +164,22 @@ public class LimitingAutoFlushWrapperTest {
 
 		logger.WriteFakeWarnMessages(10);
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
-
-		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(2));
+		
+		await AdvanceMinutesAsync(fakeTimeProvider, 2);
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
-		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(2));
+		await AdvanceMinutesAsync(fakeTimeProvider, 2);
 		Assert.Equal(5, wrappedTarget.FlushOperationsCounter);
 
-		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(2));
+		await AdvanceMinutesAsync(fakeTimeProvider, 2);
 		Assert.Equal(6, wrappedTarget.FlushOperationsCounter);
 	}
-}
 
-public static class FakeTimeProviderExtensions {
-	/// <summary>
-	/// Waits one tick to ensure that other Tasks have started
-	/// </summary>
-	public static async Task YieldOneTickAndAdvance(this FakeTimeProvider timeProvider, TimeSpan delta) {
-		await Task.Delay(1);
-		timeProvider.Advance(TimeSpan.FromTicks(1));
-		timeProvider.Advance(delta);
+	private async Task AdvanceMinutesAsync(FakeTimeProvider timeProvider, int minutes) {
+		await Task.Run(async () => {
+			await Task.Delay(50);
+			timeProvider.Advance(TimeSpan.FromMinutes(minutes));
+			await Task.Delay(50);
+		});
 	}
 }
