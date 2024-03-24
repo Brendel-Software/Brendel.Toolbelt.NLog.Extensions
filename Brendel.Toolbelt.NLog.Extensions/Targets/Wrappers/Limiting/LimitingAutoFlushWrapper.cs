@@ -13,7 +13,7 @@ namespace Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 	private DebounceHelper? _debounceHelperHolder;
 
-	private DebounceHelper DebounceHelper => _debounceHelperHolder ??= new(TimeProvider) {Action =	OnDebounceFinished };
+	private DebounceHelper DebounceHelper => _debounceHelperHolder ??= new(TimeProvider) {Action = OnDebounceFinished};
 
 	/// <summary>
 	/// A Counter that keeps track of the number of flush operations within the <see cref="Interval" />.
@@ -41,24 +41,29 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 	public bool DebounceDiscardedFlushes { get; set; }
 
 	protected override void Write(AsyncLogEventInfo logEvent) {
-		if (CanFlush(logEvent)) {
-			DebounceHelper.Cancel();
-			Counter.IncrementIntervalAware(Interval, TimeProvider.GetUtcNow());
-			base.Write(logEvent);
-		} else {
+		if (Condition.Evaluate(logEvent.LogEvent) is not true) {
+			WrappedTarget.WriteAsyncLogEvent(logEvent);
+			return;
+		}
+
+		if (LimitReached()) {
 			if (DebounceDiscardedFlushes) {
 				DebounceHelper.DebounceAt(Counter.StartTimestamp + Interval);
 			}
-
 			WrappedTarget.WriteAsyncLogEvent(logEvent);
+			return;
 		}
+
+		DebounceHelper.Cancel();
+		Counter.IncrementIntervalAware(Interval, TimeProvider.GetUtcNow());
+		base.Write(logEvent);
 	}
 
 	protected override void FlushAsync(AsyncContinuation asyncContinuation) {
 		if (DebounceHelper.Active) {
 			DebounceHelper.Cancel();
 			FlushWrappedTarget(asyncContinuation);
-		} else if(FlushOnConditionOnly || LimitReached()) {
+		} else if (FlushOnConditionOnly || LimitReached()) {
 			asyncContinuation(null);
 		} else {
 			Counter.IncrementIntervalAware(Interval, TimeProvider.GetUtcNow());
@@ -74,18 +79,6 @@ public class LimitingAutoFlushWrapper : AutoFlushTargetWrapper {
 
 	private bool LimitReached() {
 		return !Counter.CanIncrement(Interval, TimeProvider.GetUtcNow(), FlushLimit);
-	}
-
-	private bool CanFlush(AsyncLogEventInfo logEvent) {
-		if (LimitReached()) {
-			return false;
-		}
-
-		if (Condition.Evaluate(logEvent.LogEvent) is bool boolean) {
-			return boolean;
-		}
-
-		return false;
 	}
 
 	private void OnDebounceFinished(DateTimeOffset debouncedAt) {

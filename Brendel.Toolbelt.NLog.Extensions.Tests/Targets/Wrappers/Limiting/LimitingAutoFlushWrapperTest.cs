@@ -1,4 +1,5 @@
-﻿using Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
+﻿using System.Xml.Serialization;
+using Brendel.Toolbelt.NLog.Extensions.Targets.Wrappers.Limiting;
 using Brendel.Toolbelt.NLog.Extensions.Tests.TestUtilities;
 using Brendel.Toolbelt.NLog.Extensions.Tests.TestUtilities.Targets;
 using JetBrains.Annotations;
@@ -32,9 +33,9 @@ public class LimitingAutoFlushWrapperTest {
 							<target xsi:type="LimitingAutoFlushWrapper"
 									name="wrapper"
 									condition="{{condition}}"
-									flushLimit="{{limit}}"
-									interval="{{interval:c}}"
 									flushOnConditionOnly="{{flushOnConditionOnly}}"
+									flushLimit="{{limit}}"
+									interval="{{interval:g}}"
 									debounceDiscardedFlushes="{{debounceDiscardedFlushes}}">
 								<target xsi:type="CountingSpy"
 								        name="counter" />
@@ -47,6 +48,31 @@ public class LimitingAutoFlushWrapperTest {
 					</nlog>
 					""";
 		return TestComponentsFactory.BuildWrapperTestComponentsFromXml<LimitingAutoFlushWrapper, CountingSpyTarget>(xml);
+	}
+
+	[Fact]
+	public void Write_does_not_trigger_flush_when_Condition_is_not_met() {
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn");
+		logger.WriteFakeDebugMessages(10);
+		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
+	}
+
+	[Fact]
+	public async Task Write_does_not_trigger_flush_when_Condition_is_not_met_and_DebounceDiscardedFlushes_is_true() {
+		var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.Now);
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn", false, true);
+		wrapper.TimeProvider = fakeTimeProvider;
+		logger.WriteFakeDebugMessages(10);
+		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
+		await fakeTimeProvider.YieldOneTickAndAdvance(TimeSpan.FromMinutes(5));
+		Assert.Equal(0, wrappedTarget.FlushOperationsCounter);
+	}
+
+	[Fact]
+	public void Write_triggers_flush_when_Condition_is_met() {
+		var (logger, wrapper, wrappedTarget) = CreateTestComponents(5, TimeSpan.FromMinutes(5), "level >= LogLevel.Warn");
+		logger.WriteFakeWarnMessages(1);
+		Assert.Equal(1, wrappedTarget.FlushOperationsCounter);
 	}
 
 	[Fact]
