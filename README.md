@@ -1,4 +1,4 @@
-﻿[![Build Status](https://brendel-storage.visualstudio.com/R%C3%BCdigers%20Spielwiese/_apis/build/status%2FBrendel.Toolbelt.NLog.Extensions?branchName=master)](https://brendel-storage.visualstudio.com/R%C3%BCdigers%20Spielwiese/_build/latest?definitionId=36&branchName=master)
+﻿[![Build Status](https://dev.azure.com/brendel-storage/R%C3%BCdigers%20Spielwiese/_apis/build/status%2FBrendel.Toolbelt.NLog.Extensions?branchName=master)](https://dev.azure.com/brendel-storage/R%C3%BCdigers%20Spielwiese/)
 
 # Brendel.Toolbelt.NLog.Extensions
 
