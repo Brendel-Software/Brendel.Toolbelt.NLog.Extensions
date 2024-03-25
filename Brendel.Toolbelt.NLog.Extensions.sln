@@ -5,8 +5,6 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brendel.Toolbelt.NLog.Extensions", "Brendel.Toolbelt.NLog.Extensions\Brendel.Toolbelt.NLog.Extensions.csproj", "{7C1570FA-62F2-42D4-9D27-A32F9441A2EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brendel.Toolbelt.NLog.Extensions.TestConsoleApp", "Brendel.Toolbelt.NLog.Extensions.TestConsoleApp\Brendel.Toolbelt.NLog.Extensions.TestConsoleApp.csproj", "{6DA92CB0-4639-4DE6-B4EE-B4DC6DEFFDDD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brendel.Toolbelt.NLog.Extensions.Tests", "Brendel.Toolbelt.NLog.Extensions.Tests\Brendel.Toolbelt.NLog.Extensions.Tests.csproj", "{933A4AD0-9BAE-4F6F-895D-CFD4C0F161EA}"
 EndProject
 Global
@@ -19,10 +17,6 @@ Global
 		{7C1570FA-62F2-42D4-9D27-A32F9441A2EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C1570FA-62F2-42D4-9D27-A32F9441A2EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C1570FA-62F2-42D4-9D27-A32F9441A2EF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6DA92CB0-4639-4DE6-B4EE-B4DC6DEFFDDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6DA92CB0-4639-4DE6-B4EE-B4DC6DEFFDDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6DA92CB0-4639-4DE6-B4EE-B4DC6DEFFDDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6DA92CB0-4639-4DE6-B4EE-B4DC6DEFFDDD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{933A4AD0-9BAE-4F6F-895D-CFD4C0F161EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{933A4AD0-9BAE-4F6F-895D-CFD4C0F161EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{933A4AD0-9BAE-4F6F-895D-CFD4C0F161EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
